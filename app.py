@@ -3,8 +3,6 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 import plotly.express as px
-from Bio import SeqIO
-from Bio.Blast import NCBIXML
 
 # Set page configuration
 st.set_page_config(page_title="BLAST Result Dashboard", layout="wide")
@@ -24,17 +22,31 @@ st.title("BLAST Result Visualization")
 # Check if data is loaded
 if not data.empty:
     st.write("### Summary")
-    st.write(data.describe())  # Display a summary of the data
+    # Total number of different species
+    total_species = data['Scientific Name'].nunique()
+    st.write(f"Total number of different species: {total_species}")
     
-    # Visualization of Identity Scores
-    st.write("### Identity Score Distribution")
-    fig = px.histogram(data, x="identity", nbins=50, title="Identity Score Distribution")
-    st.plotly_chart(fig, use_container_width=True)
+    # The sequence with the highest Percentage Identity
+    top_sequence = data.loc[data['Per. Ident'].idxmax()]
+    st.write("Top most similar sequence details:")
+    st.write(top_sequence)
     
-    # Visualization of E-values
-    st.write("### E-value Distribution")
-    fig2 = px.histogram(data, x="evalue", nbins=50, title="E-value Distribution", log_y=True)
-    st.plotly_chart(fig2, use_container_width=True)
+    # Visualization of Query Coverage
+    st.write("### Query Coverage Distribution")
+    fig_query_cover = px.histogram(data, x="Query Cover", nbins=50, title="Query Coverage Distribution")
+    st.plotly_chart(fig_query_cover, use_container_width=True)
+    
+    # Visualization of Percentage Identity
+    st.write("### Percentage Identity Distribution")
+    fig_per_ident = px.histogram(data, x="Per. Ident", nbins=50, title="Percentage Identity Distribution")
+    st.plotly_chart(fig_per_ident, use_container_width=True)
+    
+    # Summary of top species based on occurrence
+    st.write("### Top Species by Occurrence")
+    species_count = data['Scientific Name'].value_counts().reset_index()
+    species_count.columns = ['Scientific Name', 'Count']
+    fig_species_count = px.bar(species_count.head(10), x='Scientific Name', y='Count', title='Top 10 Species by Occurrence')
+    st.plotly_chart(fig_species_count, use_container_width=True)
     
     # Detailed Data Table
     st.write("### Detailed Results")
